@@ -41,27 +41,17 @@ if uploaded_video is not None:
 
     cap.release()
 
-# Webcam Processing with Selection
+# **Webcam Processing (Fix for Safari on iPhone)**
 use_webcam = st.checkbox("Use Webcam for Live Detection")
 
 if use_webcam:
-    # Select webcam index
-    webcam_index = st.selectbox("Select Webcam", options=[0, 1, 2, 3], index=0, help="Choose the webcam device (0 is the default).")
+    # Use Streamlit's built-in camera input for mobile compatibility
+    st.markdown("**Safari users on iPhone may need to allow camera access manually.**")
+    webcam_image = st.camera_input("Take a picture for object detection")
 
-    cap = cv2.VideoCapture(webcam_index)
-    stframe = st.empty()
+    if webcam_image is not None:
+        image = np.array(Image.open(webcam_image))
+        results = model(image)
+        annotated_image = results[0].plot()
 
-    if not cap.isOpened():
-        st.error(f"Unable to open webcam {webcam_index}. Try selecting another one.")
-    else:
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-
-            results = model(frame)
-            annotated_frame = results[0].plot()
-
-            stframe.image(annotated_frame, channels="BGR", caption=f"Live Webcam Detection (Camera {webcam_index})")
-
-        cap.release()
+        st.image(annotated_image, caption="Processed Live Webcam Image", use_column_width=True)
