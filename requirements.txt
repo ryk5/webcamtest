@@ -7,7 +7,6 @@ av
 streamlit_webrtc
 numpy
 streamlit
-opencv-python
 sounddevice
 whisper
 openai
