@@ -20,7 +20,7 @@ model = YOLO("best.pt")  # 👈 Load a pretrained model (e.g., YOLOv8 Nano)
 whisper_model = whisper.load_model("base")  # Load Whisper base model (smallest and fastest)
 
 # Initialize the OpenAI client
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # Load API key from .env file
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Load API key from .env file
 
 # List of COCO dataset nouns (80 categories)
 COCO_NOUNS = [
