@@ -2,13 +2,14 @@ from ultralytics import YOLO
 import numpy as np
 import streamlit as st
 from PIL import Image
+import av
 import cv2
-
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 # Load YOLO model
-model = YOLO("best.pt")  # 👈 Load your trained weights
+model = YOLO("best.pt")  # 👈 Load your trained YOLO model
 
-st.title("YOLO Object Detection with Streamlit")
+st.title("YOLO Object Detection with Streamlit (WebRTC)")
 
 # Image Upload and Processing
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
@@ -41,17 +42,21 @@ if uploaded_video is not None:
 
     cap.release()
 
-# **Webcam Processing (Fix for Safari on iPhone)**
-use_webcam = st.checkbox("Use Webcam for Live Detection")
+# Real-time Webcam Processing using WebRTC (Fix for Safari)
+class VideoProcessor(VideoProcessorBase):
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")  # Convert frame to numpy array (BGR format)
+        
+        results = model(img)  # Run YOLO detection
+        annotated_frame = results[0].plot()  # Draw detections
+        
+        return av.VideoFrame.from_ndarray(annotated_frame, format="bgr24")
 
-if use_webcam:
-    # Use Streamlit's built-in camera input for mobile compatibility
-    st.markdown("**Safari users on iPhone may need to allow camera access manually.**")
-    webcam_image = st.camera_input("Take a picture for object detection")
+st.markdown("### 📷 Live Webcam Detection (Safari Compatible)")
 
-    if webcam_image is not None:
-        image = np.array(Image.open(webcam_image))
-        results = model(image)
-        annotated_image = results[0].plot()
-
-        st.image(annotated_image, caption="Processed Live Webcam Image", use_column_width=True)
+webrtc_streamer(
+    key="object-detection",
+    mode=WebRtcMode.SENDRECV,  # Enables real-time processing
+    video_processor_factory=VideoProcessor,
+    media_stream_constraints={"video": True, "audio": False},  # Enable webcam, disable mic
+)
