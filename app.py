@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Load YOLO model
-model = YOLO("yolov8n.pt")  # 👈 Load a pretrained model (e.g., YOLOv8 Nano)
+model = YOLO("best.pt")  # 👈 Load a pretrained model (e.g., YOLOv8 Nano)
 
 # Load Whisper model
 whisper_model = whisper.load_model("base")  # Load Whisper base model (smallest and fastest)
