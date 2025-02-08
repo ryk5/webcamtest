@@ -5,3 +5,11 @@ torchaudio
 opencv-python-headless
 av
 streamlit_webrtc
+numpy
+streamlit
+opencv-python
+sounddevice
+whisper
+tempfile
+openai
+python-dotenv
