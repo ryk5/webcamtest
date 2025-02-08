@@ -3,3 +3,5 @@ torch
 torchvision
 torchaudio
 opencv-python-headless
+av
+streamlit_webrtc
