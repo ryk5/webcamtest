@@ -1,3 +1,4 @@
+pyaudio
 ultralytics
 torch
 torchvision
