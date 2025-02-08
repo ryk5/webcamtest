@@ -10,6 +10,5 @@ streamlit
 opencv-python
 sounddevice
 whisper
-tempfile
 openai
 python-dotenv
