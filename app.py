@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
 import cv2
+from ultralytics import YOLO
 
 
 # Load YOLO model
