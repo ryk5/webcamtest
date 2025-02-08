@@ -2,7 +2,8 @@ from ultralytics import YOLO
 import numpy as np
 import streamlit as st
 import cv2
-import sounddevice as sd
+import pyaudio
+import wave
 import whisper
 import tempfile
 import os
@@ -143,37 +144,48 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Add a super big button to activate the microphone
 if st.button("🎤 Press to Speak", key="big_button"):
     st.write("Listening... Speak now!")
 
-    # Record audio from the microphone
-    sample_rate = 16000  # Whisper expects 16kHz audio
-    duration = 5  # Record for 5 seconds
-    audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype="float32")
-    sd.wait()  # Wait until the recording is finished
+    # Record audio using PyAudio
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 16000  # Whisper expects 16kHz audio
+    CHUNK = 1024
+    RECORD_SECONDS = 5
 
-    # Save the recorded audio to a temporary file
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
-        import scipy.io.wavfile as wav
-        wav.write(tmpfile.name, sample_rate, audio)  # Save as WAV file
-        tmpfile_path = tmpfile.name
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
-    # Transcribe the audio using Whisper
-    result = whisper_model.transcribe(tmpfile_path)
+    frames = []
+    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
+
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
+    # Save recorded audio to a temporary WAV file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
+        wav_filename = tmpfile.name
+        with wave.open(wav_filename, "wb") as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(audio.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b"".join(frames))
+
+    # Transcribe audio with Whisper
+    result = whisper_model.transcribe(wav_filename)
     transcription = result["text"]
 
-    # Print the transcription to the console
-    print("Transcription:", transcription)
-
-    # Display the transcription on the Streamlit app
     st.write("You said:")
     st.write(transcription)
 
     # Extract the most relevant COCO noun using OpenAI API
     relevant_noun = extract_most_relevant_noun(transcription)
-    st.session_state.relevant_noun = relevant_noun  # Store the relevant noun in session state
+    st.session_state.relevant_noun = relevant_noun
     st.write(f"The most relevant COCO noun is: **{relevant_noun}**")
 
-    # Clean up the temporary file
-    os.remove(tmpfile_path)
+    # Remove temp file
+    os.remove(wav_filename)
