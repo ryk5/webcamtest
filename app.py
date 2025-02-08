@@ -6,10 +6,8 @@ import cv2
 import kagglehub
 
 
-# path=r"C:\Users\ryanj\.cache\kagglehub\datasets\nadavishai\yolov8-glasses-dataset-v1\versions\4"
-
 # Load YOLO model
-model = YOLO("runs/detect/train15/weights/best.pt")  # 👈 Load your trained weights
+model = YOLO("best.pt")  # 👈 Load your trained weights
 
 st.title("YOLO Object Detection with Streamlit")
 
